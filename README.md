@@ -1,5 +1,5 @@
 # files-to-prompt-bash
-Bash script to show directory structure and file contents for AI prompts.
+Bash script to output directory structure and file contents for AI prompts.
 
 ## Requirements
 
