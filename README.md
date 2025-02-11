@@ -31,15 +31,17 @@ Display directory structure and contents of text files, excluding git-ignored fi
 Options:
   -h, --help     Show this help message and exit
   -v, --version  Show version information and exit
+  -i, --ignore-files PATTERN Ignore specified files or patterns
 
 Examples:
   files-to-prompt-bash.sh /path/to/directory
+  files-to-prompt-bash -i "*.md" -i "*.txt" /path/to/directory
 ```
 
 Note: It's not recommended to use this tool for large codebases as it may exceed LLM context limits.
 Be careful when outputting sensitive code or configuration files. The tool does not exclude secrets or config files.
 
-## 💡 Tips
+## 💡 Usage Tips
 
 The script outputs the file contents to terminal. You can pipe the output to your clipboard. For 
 example following command pipes the output to wayland cliboard.
@@ -53,6 +55,10 @@ You can also pipe the output into a file:
 If you are using X11 you can copy to clipboard using following command:
 
 `files-to-prompt-bash.sh /path/to/directory | xclip -selection clipboard`
+
+You can ignore files or patterns using `--ignore-files` or `-i` parameter:
+
+`files-to-prompt-bash.sh --ignore-files "README.md" /path/to/directory`
 
 ## 🤝 Contributing
 

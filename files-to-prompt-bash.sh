@@ -16,14 +16,23 @@ Display directory structure and contents of text files, excluding git-ignored fi
 Options:
   -h, --help     Show this help message and exit
   -v, --version  Show version information and exit
+  -i, --ignore-files PATTERN Ignore specified files or patterns
 
 Examples:
   $(basename "$0") /path/to/directory
+  $(basename "$0") -i "*.md" -i "*.txt" /path/to/directory
 
 EOF
 }
 
-is_ignored() {
+IGNORED_FILES=()
+
+is_git_repository() {
+	git rev-parse --git-dir > /dev/null 2>&1
+	return $?
+}
+
+is_git_ignored() {
 	local file="$1"
 	git check-ignore -q "$file"
 	return $?
@@ -35,6 +44,22 @@ is_text() {
 	return $?
 }
 
+should_ignore() {
+	local file="$1"
+	local clean_file="${file#./}"
+
+	if is_git_ignored "$file"; then
+		return 0
+	fi
+
+	for pattern in "${IGNORED_FILES[@]}"; do
+		if [[ "$clean_file" == $pattern ]]; then
+			return 0
+		fi
+	done
+	return 1
+}
+
 while [[ $# -gt 0 ]]; do
 	case $1 in
 		-h|--help)
@@ -44,6 +69,14 @@ while [[ $# -gt 0 ]]; do
 		-v|--version)
 			echo "$VERSION"
 			exit 0
+			;;
+		-i|--ignore-files)
+			if [[ $# -lt 2 ]]; then
+				echo "Error: --ignore-files requires an argument" >&2
+				exit 1
+			fi
+			IGNORED_FILES+=("$2")
+			shift 2
 			;;
 		*)
 			DIRECTORY="$1"
@@ -68,6 +101,11 @@ if ! cd "$DIRECTORY"; then
 	exit 1
 fi
 
+if ! is_git_repository; then
+	echo "Error: '$DIRECTORY' is not a Git repository" >&2
+	exit 1
+fi
+
 # output directory structure first
 tree --gitignore
 echo
@@ -75,7 +113,7 @@ echo
 # output file contents
 while IFS= read -r -d '' file; do
 
-	if is_ignored "$file"; then
+	if should_ignore "$file"; then
 		continue
 	fi
 
