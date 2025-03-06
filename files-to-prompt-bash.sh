@@ -40,8 +40,12 @@ is_git_ignored() {
 
 is_text() {
 	local file="$1"
-	file -b --mime-type "$file" | grep -q '^text/'
-	return $?
+	[[ ! -f "$file" ]] && return 1
+
+	if file -b "$file" | grep -q "text" || file -b "$file" | grep -q "empty"; then
+		return 0
+	fi
+	return 1
 }
 
 should_ignore() {
@@ -53,7 +57,7 @@ should_ignore() {
 	fi
 
 	for pattern in "${IGNORED_FILES[@]}"; do
-		if [[ "$clean_file" == $pattern ]]; then
+		if [[ "$file" == $pattern ]] || [[ "$clean_file" == $pattern ]]; then
 			return 0
 		fi
 	done
